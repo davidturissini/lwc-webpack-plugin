@@ -2,6 +2,7 @@
 
 ### Usage
 ```js
+// webpack.config.js
 const path = require('path');
 const LWCWebpackPlugin = require('lwc-webpack-plugin');
 
