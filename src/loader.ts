@@ -17,7 +17,6 @@ module.exports = function loader(source) {
         throw new Error(`[lwc-loader] Cannot transform file with extension "${ext}". Please map "${ext}" to ".js", ".html" or ".css" in options.extMap`);
     }
 
-
     const fileName = path.basename(resourcePath).replace(ext, mappedExt);
     return transform(source, fileName, {
         namespace: this.query.namespace,
