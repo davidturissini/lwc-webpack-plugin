@@ -11,7 +11,6 @@ module.exports = {
         new LWCWebpackPlugin({
             namespace: 'myapp', // LWC Namespace
             directory: path.resolve('./src/modules'), // LWC Modules directory
-            extension: '.js' // extension for class file
         }),
     ]
 }
