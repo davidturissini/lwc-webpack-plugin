@@ -3,6 +3,7 @@ const path = require('path');
 
 module.exports = function loader(source) {
     const { resourcePath } = this;
+    const { namespace } = this.query;
     const ext = path.extname(resourcePath);
     const basename = path.basename(resourcePath, ext);
     const extMap = {
@@ -19,7 +20,7 @@ module.exports = function loader(source) {
 
     const fileName = path.basename(resourcePath).replace(ext, mappedExt);
     return transform(source, fileName, {
-        namespace: this.query.namespace,
+        namespace: typeof namespace === 'string' ? namespace : namespace(resourcePath),
         name: basename,
         files: this.query.lwcAliases
     })

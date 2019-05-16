@@ -57,6 +57,7 @@ module.exports = class Plugin {
         alias['wire-service'] = path.resolve('./node_modules/@lwc/wire-service');
 
         compiler.options.resolve.extensions.push(...EXTENSIONS);
+
         compiler.options.module.rules.push({
             test: generateModuleRuleTest(directory),
             loader: require.resolve('babel-loader'),
@@ -78,7 +79,13 @@ module.exports = class Plugin {
                 path.resolve(__dirname, './defaults')
             ],
             options: {
-                namespace,
+                namespace: (path: string) => {
+                    return namespace.find((ns) => {
+                        const namespaceDirectory = directory + '/' + ns;
+                        const match = path.indexOf(namespaceDirectory) > -1;
+                        return match;
+                    });
+                },
                 extMap: EXTENSIONS.reduce((seed, ext) => {
                     seed[ext] = '.js';
                     return seed;
