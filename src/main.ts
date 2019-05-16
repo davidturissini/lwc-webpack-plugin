@@ -1,9 +1,9 @@
-const path = require('path');
-import * as fs from 'fs';
+import * as path from 'path';
 import { Compiler } from 'webpack';
+import { ResolverPlugin } from './resolver';
 
 interface PluginConfig {
-    namespace: string;
+    namespace: string | string[];
     directory: string;
 }
 
@@ -12,48 +12,17 @@ const EXTENSIONS = [
     '.ts'
 ];
 
-function getExtension(directoryPath: string, fileName: string) {
-    return EXTENSIONS.find((extension) => {
-        const pathWithExtension = `${directoryPath}/${fileName}${extension}`;
-        return fs.existsSync(pathWithExtension);
-    });
-}
-
-class ResolverPlugin {
-    directory: string;
-    namespace: string;
-    constructor(namespace: string, directory: string) {
-        this.directory = directory;
-        this.namespace = namespace;
-    }
-    apply(resolver) {
-        const { directory, namespace } = this;
-        resolver.hooks.module.tapAsync('lwc-resolver', (request, resolveContext, callback) => {
-            const split = request.request.split('/');
-
-            if (split[0] === namespace) {
-                const fullDir = `${directory}/${request.request.replace(namespace + '/', '')}`;
-                const { name: fileName } = path.parse(request.request);
-                const extension = getExtension(fullDir, fileName);
-                const fullPath = resolver.join(fullDir, `${fileName}${extension}`);
-
-                const obj = {
-                    ...request,
-                    request: fullPath,
-                };
-
-                return resolver.doResolve(resolver.ensureHook('resolve'), obj, "using path: " + fullPath, resolveContext, callback);
-            }
-
-            callback();
-        });
-    }
-}
-
 function generateModuleRuleTest(directory: string) {
     const ext = '(' + EXTENSIONS.join('|').replace(/\./g, '') + ')$';
 
     return new RegExp(`${directory}(.+)\.${ext}`);
+}
+
+function namespaceArray(namespace: string | string[]): string[] {
+    if (typeof namespace === 'string') {
+        return [namespace];
+    }
+    return namespace;
 }
 
 module.exports = class Plugin {
@@ -62,7 +31,8 @@ module.exports = class Plugin {
         this.config = config;
     }
     apply(compiler: Compiler) {
-        const { directory, namespace } = this.config;
+        const { directory } = this.config;
+        const namespace = namespaceArray(this.config.namespace);
 
         compiler.hooks.environment.tap('lwc-webpack-plugin', () => {
             const resolverPlugin = new ResolverPlugin(namespace, directory);
@@ -76,9 +46,15 @@ module.exports = class Plugin {
             }
         });
 
-        compiler.options.resolve.alias = {
-            lwc: path.resolve('./node_modules/@lwc/engine/dist/modules/es2017/engine.js'),
-        };
+        let { alias } = compiler.options.resolve;
+        if (alias === undefined) {
+            alias = compiler.options.resolve.alias = {};
+        }
+
+
+        // Specify known package aliases
+        alias.lwc = path.resolve('./node_modules/@lwc/engine');
+        alias['wire-service'] = path.resolve('./node_modules/@lwc/wire-service');
 
         compiler.options.resolve.extensions.push(...EXTENSIONS);
         compiler.options.module.rules.push({
@@ -97,6 +73,10 @@ module.exports = class Plugin {
         compiler.options.module.rules.push({
             test: /\.(html|css)$/,
             loader: require.resolve('./loader'),
+            include: [
+                directory,
+                path.resolve(__dirname, './defaults')
+            ],
             options: {
                 namespace,
                 extMap: EXTENSIONS.reduce((seed, ext) => {
