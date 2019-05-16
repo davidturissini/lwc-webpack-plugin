@@ -22,8 +22,13 @@ function getExtension(fileSystem: any, directoryPath: string, fileName: string) 
 }
 
 // Returns true if the id respect module scheme
-function isValidModuleName(id) {
-    return id.match(/^(\w+\/)(\w+)$/);
+function isValidModuleName(request: any, namespaces: { [key: string]: string }) {
+    const match = request.match(/^(\w+\/)(\w+)$/);
+
+    if (match === null) { return false }
+
+    const { ns } = getInfoFromId(request);
+    return namespaces[ns] !== undefined;
 }
 
 // Returns module name and namespace from id
@@ -35,14 +40,10 @@ function getInfoFromId(id) {
     };
 }
 
-
-
 export class ResolverPlugin {
-    directory: string;
-    namespace: string[];
-    constructor(namespace: string[], directory: string) {
-        this.directory = directory;
-        this.namespace = namespace;
+    namespaces: { [key: string]: string };
+    constructor(namespaces: { [key: string]: string }) {
+        this.namespaces = namespaces;
     }
     apply(resolver) {
         resolver.hooks.module.tapAsync('lwc-module-resolver', (req, ctx, cb) =>
@@ -54,16 +55,15 @@ export class ResolverPlugin {
 
     resolveModule(resolver, req, ctx, cb) {
         const { fileSystem } = resolver;
-        const { directory } = this;
-
         const { request, query } = req;
+        const { namespaces } = this;
 
-        if (!isValidModuleName(request)) {
+        if (!isValidModuleName(request, namespaces)) {
             return cb();
         }
 
         const { ns, name } = getInfoFromId(request);
-        const directoryPath = path.resolve(directory, ns, name);
+        const directoryPath = path.resolve(namespaces[ns], name);
         const ext = getExtension(fileSystem, directoryPath, name);
         const lwcModuleEntry = path.resolve(directoryPath, `${name}${ext}`);
         fileSystem.stat(lwcModuleEntry, err => {

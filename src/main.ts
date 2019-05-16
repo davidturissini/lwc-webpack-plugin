@@ -3,8 +3,7 @@ import { Compiler } from 'webpack';
 import { ResolverPlugin } from './resolver';
 
 interface PluginConfig {
-    namespace: string | string[];
-    directory: string;
+    namespace: { [key: string]: string }
 }
 
 const EXTENSIONS = [
@@ -12,30 +11,16 @@ const EXTENSIONS = [
     '.ts'
 ];
 
-function generateModuleRuleTest(directory: string) {
-    const ext = '(' + EXTENSIONS.join('|').replace(/\./g, '') + ')$';
-
-    return new RegExp(`${directory}(.+)\.${ext}`);
-}
-
-function namespaceArray(namespace: string | string[]): string[] {
-    if (typeof namespace === 'string') {
-        return [namespace];
-    }
-    return namespace;
-}
-
 module.exports = class Plugin {
     config: PluginConfig;
     constructor(config: PluginConfig) {
         this.config = config;
     }
     apply(compiler: Compiler) {
-        const { directory } = this.config;
-        const namespace = namespaceArray(this.config.namespace);
-
+        const { namespace } = this.config;
+        const namespaceDirectories = Object.keys(namespace).map((key) => namespace[key]);
         compiler.hooks.environment.tap('lwc-webpack-plugin', () => {
-            const resolverPlugin = new ResolverPlugin(namespace, directory);
+            const resolverPlugin = new ResolverPlugin(namespace);
 
             compiler.options.resolve.plugins = [resolverPlugin];
             compiler.options.resolveLoader.plugins = [resolverPlugin];
@@ -57,39 +42,40 @@ module.exports = class Plugin {
         alias['wire-service'] = path.resolve('./node_modules/@lwc/wire-service');
 
         compiler.options.resolve.extensions.push(...EXTENSIONS);
-
         compiler.options.module.rules.push({
-            test: generateModuleRuleTest(directory),
-            loader: require.resolve('babel-loader'),
-            options: {
-                plugins: [
-                    require.resolve('@lwc/babel-plugin-component')
-                ],
-                presets: [
-                    require.resolve('@babel/preset-typescript')
-                ]
+            test: /\.(js|ts)$/,
+            include: namespaceDirectories,
+            use: {
+                loader: require.resolve('babel-loader'),
+                options: {
+                    plugins: [
+                        require.resolve('@lwc/babel-plugin-component')
+                    ],
+                    presets: [
+                        require.resolve('@babel/preset-typescript')
+                    ]
+                }
             }
         });
 
         compiler.options.module.rules.push({
             test: /\.(html|css)$/,
-            loader: require.resolve('./loader'),
+
             include: [
-                directory,
+                ...namespaceDirectories,
                 path.resolve(__dirname, './defaults')
             ],
-            options: {
-                namespace: (path: string) => {
-                    return namespace.find((ns) => {
-                        const namespaceDirectory = directory + '/' + ns;
-                        const match = path.indexOf(namespaceDirectory) > -1;
-                        return match;
-                    });
-                },
-                extMap: EXTENSIONS.reduce((seed, ext) => {
-                    seed[ext] = '.js';
-                    return seed;
-                }, {})
+            use: {
+                loader: require.resolve('./loader'),
+                options: {
+                    namespace: (path: string) => {
+                        return 'hey';
+                    },
+                    extMap: EXTENSIONS.reduce((seed, ext) => {
+                        seed[ext] = '.js';
+                        return seed;
+                    }, {})
+                }
             }
         });
     }
