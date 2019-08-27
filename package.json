@@ -5,8 +5,9 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc && cp -R ./src/defaults ./dist/defaults",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "tsc --watch"
+    "test": "jest",
+    "watch": "tsc --watch",
+    "build:example": "yarn build && npx webpack"
   },
   "repository": {
     "type": "git",
@@ -19,14 +20,22 @@
   },
   "homepage": "https://github.com/davidturissini/lwc-webpack-plugin#readme",
   "devDependencies": {
+    "@lwc/engine": "1.1.0-alpha10",
+    "@salesforce-ux/design-system": "3.0.0-alpha-5",
+    "@types/jest": "^24.0.18",
     "@types/node": "^12.0.1",
     "@types/webpack": "^4.4.31",
-    "typescript": "^3.4.5"
+    "jest": "^24.9.0",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.4.5",
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.7"
   },
   "dependencies": {
     "@babel/preset-typescript": "^7.3.3",
     "@lwc/babel-plugin-component": "^0.37.4",
-    "@lwc/compiler": "^0.37.4",
+    "@lwc/compiler": "1.1.0-alpha10",
+    "@lwc/module-resolver": "1.1.0-alpha10",
     "babel-loader": "^8.0.6"
   }
 }

@@ -8,6 +8,7 @@ const EXTENSIONS = [
     '.ts'
 ];
 
+
 function getExtension(fileSystem: any, directoryPath: string, fileName: string) {
     return EXTENSIONS.find((extension) => {
         const pathWithExtension = `${directoryPath}/${fileName}${extension}`;
@@ -44,6 +45,7 @@ export class ResolverPlugin {
     namespaces: { [key: string]: string };
     constructor(namespaces: { [key: string]: string }) {
         this.namespaces = namespaces;
+        
     }
     apply(resolver) {
         resolver.hooks.module.tapAsync('lwc-module-resolver', (req, ctx, cb) =>
