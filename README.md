@@ -13,7 +13,11 @@ module.exports = {
             namespace: {
                 // LWC Namespace with path
                 mynamespace: path.resolve('./src/modules/mynamespace')
-            }
+            },
+            // NPM modules
+            modules: [
+                '@salesforce-ux/design-system'
+            ]
         }),
     ]
 }
