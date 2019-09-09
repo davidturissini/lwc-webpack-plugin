@@ -22,11 +22,3 @@ module.exports = {
     ]
 }
 ```
-
-### Running example locally
-
-```
-1. yarn install
-2. yarn build:example
-3. open index.html
-```

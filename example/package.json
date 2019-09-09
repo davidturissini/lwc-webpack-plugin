@@ -1,0 +1,21 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "description": "LWC webpack plugin example",
+  "main": "index.js",
+  "author": "Reinier Guerra",
+  "license": "ISC",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx webpack"
+  },
+  "dependencies": {
+    "@lwc/engine": "1.1.0-alpha10",
+    "@salesforce-ux/design-system": "3.0.0-alpha-5",
+    "lwc-webpack-plugin": "0.2.0"
+  },
+  "devDependencies": {
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.7"
+  }
+}

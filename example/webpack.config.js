@@ -1,5 +1,5 @@
 const path = require('path');
-const LWCWebpackPlugin = require('./dist/main')
+const LWCWebpackPlugin = require('lwc-webpack-plugin')
 
 module.exports = {
     entry: './index.js',
@@ -12,7 +12,7 @@ module.exports = {
         new LWCWebpackPlugin({
             namespace: {
                 // LWC namespace with path
-                my: path.resolve('./modules/my')
+                my: path.resolve('./src/my')
             },
             modules: [
                 '@salesforce-ux/design-system'
