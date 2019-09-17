@@ -22,7 +22,12 @@ module.exports = function loader(source) {
     return transform(source, fileName, {
         namespace: typeof namespace === 'string' ? namespace : namespace(resourcePath),
         name: basename,
-        files: this.query.lwcAliases
+        files: this.query.lwcAliases,
+        stylesheetConfig: {
+            customProperties: {
+                allowDefinition: true,
+            },
+        }
     })
     .then((data) => {
         return data.code;

@@ -1,9 +1,11 @@
 import * as path from 'path';
 import { Compiler } from 'webpack';
 import { ResolverPlugin } from './resolver';
+import { ResolverFromNpmPlugin } from './resolver-from-npm';
 
 interface PluginConfig {
-    namespace: { [key: string]: string }
+    namespace: { [key: string]: string },
+    modules: string[]
 }
 
 const EXTENSIONS = [
@@ -17,13 +19,17 @@ module.exports = class Plugin {
         this.config = config;
     }
     apply(compiler: Compiler) {
-        const { namespace } = this.config;
+        const { 
+            namespace, 
+            modules = [],  
+        } = this.config;
         const namespaceDirectories = Object.keys(namespace).map((key) => namespace[key]);
         compiler.hooks.environment.tap('lwc-webpack-plugin', () => {
             const resolverPlugin = new ResolverPlugin(namespace);
+            const resolverFromNpmPlugin = new ResolverFromNpmPlugin(modules);
 
-            compiler.options.resolve.plugins = [resolverPlugin];
-            compiler.options.resolveLoader.plugins = [resolverPlugin];
+            compiler.options.resolve.plugins = [resolverPlugin, resolverFromNpmPlugin];
+            compiler.options.resolveLoader.plugins = [resolverPlugin, resolverFromNpmPlugin];
 
             let rules = compiler.options.module.rules;
             if (rules === undefined) {
@@ -57,14 +63,8 @@ module.exports = class Plugin {
                 }
             }
         });
-
         compiler.options.module.rules.push({
             test: /\.(html|css)$/,
-
-            include: [
-                ...namespaceDirectories,
-                path.resolve(__dirname, './defaults')
-            ],
             use: {
                 loader: require.resolve('./loader'),
                 options: {
